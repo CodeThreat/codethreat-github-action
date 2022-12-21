@@ -8,13 +8,12 @@ With CodeThreat custom rule engine, we have wide language and framework support 
 
 ## Requirements
 
-* A [CodeThreat](https://codethreat.com) account. Contact info@codethreat.com
+* A [CodeThreat](https://codethreat.com) account. Contact info@codethreat.com if you don't have one yet.
 * Aaand that's all! Now you are ready to jump!
 
 ## Usage
 
-Copy that yaml file and add it to `.github/workflows/ct.yml` directory.
-If it's not fit you directlty you can change action triggers and `FAILED_ARGS`.
+Create a YAML file, such as the one below, `.github/workflows/ct.yml` under your source code project root directory. You can tailor the action triggers and `FAILED_ARGS` according to your needs.
 
 ```yaml
 on:
