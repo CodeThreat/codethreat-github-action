@@ -2,14 +2,14 @@
 
 <img src="https://codethreat.com/images/Codethreat-Logo-kucuk-logo-p-500.png">
 
-Scanning using this github action is very simple. [CodeThreat](https://codethreat.com) is a static application security testing(SAST) solution. It uses scientifically proven techniques with approximation to analyze a codebase at rest, collects security related information, calculates data flows, searches for various well-known security weaknesses and as a result produce claims. These claims are usually whether the targeted codebase is vulnerable to scoped weaknesses or not.
+[CodeThreat](https://codethreat.com) SAST solution has seamless integration with the (GitHub Actions)[https://github.com/features/actions]. While it's fairly easy to start security scans and working on the issues found on your code, this document provides details of the integration. 
 
 With CodeThreat custom rule engine, we have wide language and framework support without sacrificing quality.
 
 ## Requirements
 
-* You must have a codethreat account to use it. [To Sign Up](https://codethreat.com)!
-* Thats all. Now you are ready to jump!
+* A [CodeThreat](https://codethreat.com) account. Contact info@codethreat.com
+* Aaand that's all! Now you are ready to jump!
 
 ## Usage
 
