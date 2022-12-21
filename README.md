@@ -2,19 +2,18 @@
 
 <img src="https://codethreat.com/images/Codethreat-Logo-kucuk-logo-p-500.png">
 
-Scanning using this github action is very simple. [CodeThreat](https://codethreat.com) is a static application security testing(SAST) solution. It uses scientifically proven techniques with approximation to analyze a codebase at rest, collects security related information, calculates data flows, searches for various well-known security weaknesses and as a result produce claims. These claims are usually whether the targeted codebase is vulnerable to scoped weaknesses or not.
+[CodeThreat](https://codethreat.com) SAST solution has seamless integration with the [GitHub Actions](https://github.com/features/actions). While it's fairly easy to start security scans and working on the issues found on your code, this document provides details of the integration. 
 
 With CodeThreat custom rule engine, we have wide language and framework support without sacrificing quality.
 
 ## Requirements
 
-* You must have a codethreat account to use it. [To Sign Up](https://codethreat.com)!
-* Thats all. Now you are ready to jump!
+* A [CodeThreat](https://codethreat.com) account. Contact info@codethreat.com if you don't have one yet.
+* Aaand that's all! Now you are ready to jump!
 
 ## Usage
 
-Copy that yaml file and add it to `.github/workflows/ct.yml` directory.
-If it's not fit you directlty you can change action triggers and `FAILED_ARGS`.
+Create a YAML file, such as the one below, `.github/workflows/ct.yml` under your source code project root directory. You can tailor the action triggers and `FAILED_ARGS` according to your needs.
 
 ```yaml
 on:
@@ -53,14 +52,13 @@ jobs:
 
 ```
 
-* If `FAILED_ARGS` conditions applies the scan results for the values you will give, it is the part where you will fail the action. 
+* As the name implies `FAILED_ARGS` contains the conditions for which you want to break the pipeline (action).
 
-* In env section, you can use ACCESS_TOKEN or USERNAME, PASSWORD one of the authentication methods is required.
+* In `env` section, you can use either the ACCESS_TOKEN or USERNAME,PASSWORD pair as one of the authentication method.
 
-* Mininum one of `FAILED_ARGS` fields is required. Args are merge with the `and` condition between themselves.
+* Mininum one  `FAILED_ARGS` fields is required. If more args are provided, they will be `AND`ed together.
 
-* `weakness_is` fields expects both a wildcard or a direct weakness id.
-You can find all the following weakness ids [here](https://codethreat.com).
+* `weakness_is` fields expects either a wildcard or a direct weakness id. Please checkout KStore section of  [CodeThreat](https://codethreat.com) portal application.
 
 ## Args
 

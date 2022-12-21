@@ -1,4 +1,4 @@
-name: 'Codethreat Scanner'
+name: 'CodeThreat Github Action Scanner'
 description: 'Codethreat Github Action'
 inputs:
   FAILED_ARGS:
