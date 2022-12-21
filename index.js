@@ -150,7 +150,7 @@ const awaitScan = async (sid) => {
     } else {
       setTimeout(function () {
         awaitScan(sid);
-      }, 8000);
+      }, 3000);
     }
   } catch (error) {
     core.setFailed(error.message);
