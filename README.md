@@ -52,14 +52,13 @@ jobs:
 
 ```
 
-* If `FAILED_ARGS` conditions applies the scan results for the values you will give, it is the part where you will fail the action. 
+* As the name implies `FAILED_ARGS` contains the conditions for which you want to break the pipeline (action).
 
-* In env section, you can use ACCESS_TOKEN or USERNAME, PASSWORD one of the authentication methods is required.
+* In `env` section, you can use either the ACCESS_TOKEN or USERNAME,PASSWORD pair as one of the authentication method.
 
-* Mininum one of `FAILED_ARGS` fields is required. Args are merge with the `and` condition between themselves.
+* Mininum one  `FAILED_ARGS` fields is required. If more args are provided, they will be `AND`ed together.
 
-* `weakness_is` fields expects both a wildcard or a direct weakness id.
-You can find all the following weakness ids [here](https://codethreat.com).
+* `weakness_is` fields expects either a wildcard or a direct weakness id. Please checkout KStore section of  [CodeThreat](https://codethreat.com) portal application.
 
 ## Args
 
