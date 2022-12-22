@@ -48,6 +48,9 @@ const output = failedArgsParsed.reduce(
   {},
 );
 
+if(output.automerge === undefined) output.automerge = false;
+if(output.condition === undefined) output.condition = 'OR';
+
 const repoName = github.context.repo.repo;
 const repoOwner = github.context.repo.owner;
 const pr = github.context.payload.pull_request;
@@ -279,7 +282,7 @@ const resultScan = async (riskS, started_at, ended_at, totalSeverities) => {
           } catch (error) {
             core.setFailed(error.message);
           }
-        } else if (weaknessIsCount > 0) {
+        } else if (weaknessIsCount.length > 0) {
           try {
             await octokit.pulls.update({
               owner: repoOwner,

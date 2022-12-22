@@ -191,11 +191,11 @@ const htmlCode = (
     const severityCapitalize =
       r.severity.charAt(0).toUpperCase() + r.severity.slice(1);
 
-      const query = {
-        "projectName": repoName,
-        "issuename": r.title,
-      }
-      const encodedQ = btoa(unescape(encodeURIComponent(JSON.stringify(query))));
+    const query = {
+      projectName: repoName,
+      issuename: r.title,
+    };
+    const encodedQ = btoa(unescape(encodeURIComponent(JSON.stringify(query))));
 
     var listItem =
       "<li>" +
@@ -222,27 +222,18 @@ const htmlCode = (
 };
 
 const findWeaknessTitles = (arr, keywords) => {
-  let count = 0;
-  const foundIds = new Set();
-  arr.forEach((item) => {
-    if (
-      item.issue_state.weakness_id &&
-      !foundIds.has(item.issue_state.weakness_id)
-    ) {
-      let found = false;
-      keywords.forEach((keyword) => {
-        if (item.issue_state.weakness_id.includes(keyword)) {
-          found = true;
-          return;
-        }
-      });
-      if (found) {
-        count++;
-        foundIds.add(item.issue_state.weakness_id);
-      }
-    }
+  const regexArray = keywords.map((str) => new RegExp(str));
+
+  let failedWeaknesss = [];
+
+  arr.forEach((element) => {
+    const found = regexArray.find((r) => {
+      return r.test(element.issue_state.weakness_id);
+    });
+    if (found) failedWeaknesss.push(element);
   });
-  return count;
+
+  return failedWeaknesss;
 };
 
 const newIssue = async (repoName, token, ctServer) => {
