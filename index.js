@@ -325,7 +325,7 @@ const resultScan = async (riskS, started_at, ended_at, totalSeverities) => {
               output.max_number_of_critical < totalSeverities?.critical) ||
             (output.max_number_of_critical &&
               output.max_number_of_high < totalSeverities?.high) ||
-            weaknessIsCount > 0
+            weaknessIsCount.length > 0
           ) {
             try {
               await octokit.pulls.update({
