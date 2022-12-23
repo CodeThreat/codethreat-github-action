@@ -44,11 +44,11 @@ jobs:
            PASSWORD: ${{ secrets.PASSWORD }}
         with: 
             FAILED_ARGS: |
-                 - max_number_of_critical=4
-                 - max_number_of_high=20
-                 - weakness_is=".*injection,buffer.over.read,mass.assigment"
-                 - condition = 'OR'
-                 - automerge = true
+                 - max_number_of_critical: 4
+                 - max_number_of_high: 20
+                 - weakness_is: ".*injection,buffer.over.read,mass.assigment"
+                 - condition: 'OR'
+                 - automerge: true
 
 ```
 
