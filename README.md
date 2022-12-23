@@ -46,7 +46,7 @@ jobs:
             FAILED_ARGS: |
                  - max_number_of_critical=4
                  - max_number_of_high=20
-                 - weakness_is="*.injection,buffer.over.read,mass.assigment"
+                 - weakness_is=".*injection,buffer.over.read,mass.assigment"
                  - condition = 'OR'
                  - automerge = true
 
@@ -66,7 +66,7 @@ jobs:
 | ------------- | ------------- | ------------- |------------- | ------------- | ------------- |
 | max_number_of_critical | 5 | Failed condition for maximum critical number of found issues | Number | No | N/A
 | max_number_of_high | 20 | Failed condition for maximum high number of found issues | Number | No | N/A
-| weakness_is | "*.injection,buffer.over.read,mass.assigment" | Failed condition for found issues weakness id's. | String | No | N/A
+| weakness_is | ".*injection,buffer.over.read,mass.assigment" | Failed condition for found issues weakness id's. | String | No | N/A
 | automerge | true | If automerge is active and scan returns success, it allows PR to merge automatically . | Boolean | No | false
 | condition | "OR" | It checks failed arguments(max_number_of_critical, max_number_of_high)  using with "and" or "or". | String | No | AND
 
