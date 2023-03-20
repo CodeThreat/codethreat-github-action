@@ -35,7 +35,7 @@ jobs:
       - name: Install Node.js
         uses: actions/setup-node@v1
       - name: CodeThreat Scanner
-        uses: CodeThreat/codethreat_scan_action
+        uses: CodeThreat/codethreat-scan-action@master
         env:
            ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
