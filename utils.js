@@ -3,7 +3,7 @@ const axios = require("axios");
 const countAndGroupByTitle = (arr) => {
   const result = [];
   arr.forEach((obj) => {
-    const title = obj.kb_fields.title.en;
+    const title = obj.issue_state.weakness_id;
     const severity = obj.issue_state.severity;
     if (!result.find((o) => o.title === title)) {
       result.push({
@@ -313,6 +313,33 @@ const allIssue = async (repoName, token, ctServer) => {
   return allData;
 };
 
+const failedArgs = (failedArgsParsed) => {
+  const output = failedArgsParsed.reduce(
+    (
+      acc,
+      {
+        max_number_of_critical,
+        max_number_of_high,
+        weakness_is,
+        automerge,
+        condition,
+      },
+    ) => {
+      return {
+        ...acc,
+        max_number_of_critical: max_number_of_critical ||
+          acc.max_number_of_critical,
+        max_number_of_high: max_number_of_high || acc.max_number_of_high,
+        weakness_is: weakness_is || acc.weakness_is,
+        automerge: automerge || acc.automerge,
+        condition: condition || acc.condition,
+      };
+    },
+    {},
+  );
+  return output;
+}
+
 
 module.exports = {
   countAndGroupByTitle,
@@ -323,4 +350,5 @@ module.exports = {
   findWeaknessTitles,
   newIssue,
   allIssue,
+  failedArgs,
 };

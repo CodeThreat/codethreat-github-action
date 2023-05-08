@@ -13,61 +13,38 @@ const {
   findWeaknessTitles,
   newIssue,
   allIssue,
+  failedArgs,
 } = require("./utils");
 
 let token = process.env.ACCESS_TOKEN;
 const githubtoken = process.env.GITHUB_TOKEN;
 const ctServer = process.env.CT_SERVER;
-let username = process.env.USERNAME;
-let password = process.env.PASSWORD;
-
-const failedArgs = core.getInput("FAILED_ARGS");
-const failedArgsParsed = yaml.load(failedArgs);
-
-const output = failedArgsParsed.reduce(
-  (
-    acc,
-    {
-      max_number_of_critical,
-      max_number_of_high,
-      weakness_is,
-      automerge,
-      condition,
-    },
-  ) => {
-    return {
-      ...acc,
-      max_number_of_critical: max_number_of_critical ||
-        acc.max_number_of_critical,
-      max_number_of_high: max_number_of_high || acc.max_number_of_high,
-      weakness_is: weakness_is || acc.weakness_is,
-      automerge: automerge || acc.automerge,
-      condition: condition || acc.condition,
-    };
-  },
-  {},
-);
-
-if(output.automerge === undefined) output.automerge = false;
-if(output.condition === undefined) output.condition = 'AND';
-
+const username = process.env.USERNAME;
+const password = process.env.PASSWORD;
 const repoName = github.context.repo.repo;
 const repoOwner = github.context.repo.owner;
 const pr = github.context.payload.pull_request;
+const type = github.context.payload.repository.private ? "private" : "public";
 let branch = github.context.payload.pull_request?.head.ref;
 let repoId = github.context.payload.pull_request?.head.repo.owner.id;
-let type = github.context.payload.repository.private;
 
-if(github.context.eventName === 'push'){
+if (github.context.eventName === "push") {
   branch = github.context.payload.repository.default_branch;
   repoId = github.context.payload.repository.id;
 }
+
+const failedArgsInput = core.getInput("FAILED_ARGS");
+const failedArgsParsed = yaml.load(failedArgsInput);
+const output = failedArgs(failedArgsParsed);
+
+if (output.automerge === undefined) output.automerge = false;
+if (output.condition === undefined) output.condition = "AND";
 
 const octokit = new Octokit({
   auth: githubtoken,
 });
 
-let scanProcess;
+let scanProcess, cancellation;
 
 const startScan = async () => {
   try {
@@ -92,13 +69,14 @@ const startScan = async () => {
         type: type,
         githubtoken: githubtoken,
         id: repoId,
+        action: true,
       },
       {
         headers: {
           Authorization: token,
           "x-ct-organization": "codethreat",
         },
-      },
+      }
     );
     return scanStarting;
   } catch (error) {
@@ -146,15 +124,60 @@ const awaitScan = async (sid) => {
           "\n" +
           "Low : " +
           progressSeverity[progressSeverity.length - 1].low +
-          "\n",
+          "\n"
       );
+
+      const newIssues = await newIssue(repoName, token, ctServer);
+      const weaknessIsKeywords = output.weakness_is.split(",");
+      const weaknessIsCount = findWeaknessTitles(newIssues, weaknessIsKeywords);
+
+      if (output.condition === "OR") {
+        if (
+          output.max_number_of_critical &&
+          output.max_number_of_critical <
+            progressSeverity[progressSeverity.length - 1].critical
+        ) {
+          core.setFailed("!! FAILED_ARGS : Critical limit exceeded -- ");
+          scanProcess.data.state === "end";
+          cancellation = true;
+        } else if (
+          output.max_number_of_critical &&
+          output.max_number_of_high <
+            progressSeverity[progressSeverity.length - 1].high
+        ) {
+          core.setFailed("!! FAILED_ARGS : High limit exceeded -- ");
+          scanProcess.data.state === "end";
+          cancellation = true;
+        } else if (weaknessIsCount.length > 0) {
+          core.setFailed(
+            "!! FAILED_ARGS : Weaknesses entered in the weakness_is key were found during the scan."
+          );
+          scanProcess.data.state === "end";
+        }
+      } else if (output.condition === "AND") {
+        if (
+          (output.max_number_of_critical &&
+            output.max_number_of_critical <
+              progressSeverity[progressSeverity.length - 1].critical) ||
+          (output.max_number_of_critical &&
+            output.max_number_of_high <
+              progressSeverity[progressSeverity.length - 1].high) ||
+          weaknessIsCount.length > 0
+        ) {
+          core.setFailed(
+            "!! FAILED ARGS : Not all conditions are met according to the given arguments"
+          );
+          scanProcess.data.state === "end";
+          cancellation = true;
+        }
+      }
     }
-    if (scanProcess.data.state === "end") {
+    if (scanProcess.data.state === "end" || cancellation) {
       await resultScan(
         scanProcess.data.riskscore,
         scanProcess.data.started_at,
         scanProcess.data.ended_at,
-        scanProcess.data.severities,
+        scanProcess.data.severities
       );
     } else {
       setTimeout(function () {
@@ -167,9 +190,13 @@ const awaitScan = async (sid) => {
 };
 const resultScan = async (riskS, started_at, ended_at, totalSeverities) => {
   try {
-    console.log(
-      "Scan Completed... " + `%` + progressData[progressData.length - 1],
-    );
+    let reason;
+    if (!cancellation) {
+      reason = `Scan Completed... %${progressData[progressData.length - 1]}`;
+    } else {
+      reason =
+        "Pipeline interrupted because the FAILED_ARGS arguments you entered were found... ";
+    }
 
     let totalSev = {
       critical: totalSeverities.critical ? totalSeverities.critical : 0,
@@ -180,6 +207,9 @@ const resultScan = async (riskS, started_at, ended_at, totalSeverities) => {
 
     core.warning(
       "\n" +
+        "Result : " +
+        reason +
+        "\n" +
         "Critical : " +
         totalSev.critical +
         "\n" +
@@ -191,7 +221,7 @@ const resultScan = async (riskS, started_at, ended_at, totalSeverities) => {
         "\n" +
         "Low : " +
         totalSev.low +
-        "\n",
+        "\n"
     );
 
     const newIssues = await newIssue(repoName, token, ctServer);
@@ -219,10 +249,10 @@ const resultScan = async (riskS, started_at, ended_at, totalSeverities) => {
       riskscore,
       totalSeverities,
       repoName,
-      ctServer,
+      ctServer
     );
 
-    if(pr && pr.number){
+    if (pr && pr.number) {
       if (allIssues.length === 0) {
         if (output.automerge) {
           try {
@@ -255,7 +285,10 @@ const resultScan = async (riskS, started_at, ended_at, totalSeverities) => {
         }
       } else {
         const weaknessIsKeywords = output.weakness_is.split(",");
-        const weaknessIsCount = findWeaknessTitles(allIssues, weaknessIsKeywords);
+        const weaknessIsCount = findWeaknessTitles(
+          allIssues,
+          weaknessIsKeywords
+        );
         if (output.condition === "OR") {
           if (
             output.max_number_of_critical &&
@@ -299,7 +332,7 @@ const resultScan = async (riskS, started_at, ended_at, totalSeverities) => {
                 body: html,
               });
               core.setFailed(
-                "!! FAILED_ARGS : Weaknesses entered in the weakness_is key were found during the scan.",
+                "!! FAILED_ARGS : Weaknesses entered in the weakness_is key were found during the scan."
               );
             } catch (error) {
               core.setFailed(error.message);
@@ -314,7 +347,7 @@ const resultScan = async (riskS, started_at, ended_at, totalSeverities) => {
                 body: html,
               });
               core.setFailed(
-                "!! A condition you entered in FAILED_ARGS was not found, but there are findings from the scan.",
+                "!! A condition you entered in FAILED_ARGS was not found, but there are findings from the scan."
               );
             } catch (error) {
               core.setFailed(error.message);
@@ -337,7 +370,7 @@ const resultScan = async (riskS, started_at, ended_at, totalSeverities) => {
                 body: html,
               });
               core.setFailed(
-                "!! FAILED ARGS : Not all conditions are met according to the given arguments",
+                "!! FAILED ARGS : Not all conditions are met according to the given arguments"
               );
             } catch (error) {
               core.setFailed(error.message);
@@ -352,7 +385,7 @@ const resultScan = async (riskS, started_at, ended_at, totalSeverities) => {
                 body: html,
               });
               core.setFailed(
-                "!! A condition you entered in FAILED_ARGS was not found, but there are findings from the scan.",
+                "!! A condition you entered in FAILED_ARGS was not found, but there are findings from the scan."
               );
             } catch (error) {
               core.setFailed(error.message);
@@ -361,7 +394,6 @@ const resultScan = async (riskS, started_at, ended_at, totalSeverities) => {
         }
       }
     }
-
   } catch (error) {
     core.setFailed(error.message);
   }

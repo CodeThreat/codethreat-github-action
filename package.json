@@ -1,5 +1,5 @@
 {
-  "name": "jsexampleact",
+  "name": "codethreat-scan-action",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -8,15 +8,15 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/thyldrm/jsexampleact.git"
+    "url": "git+https://github.com/CodeThreat/codethreat-scan-action.git"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/thyldrm/jsexampleact/issues"
+    "url": "https://github.com/CodeThreat/codethreat-scan-action/issues"
   },
-  "homepage": "https://github.com/thyldrm/jsexampleact#readme",
+  "homepage": "https://github.com/CodeThreat/codethreat-scan-action#readme",
   "dependencies": {
     "@actions/core": "^1.10.0",
     "@actions/github": "^5.1.1",
