@@ -25,6 +25,7 @@ const repoName = github.context.repo.repo;
 const repoOwner = github.context.repo.owner;
 const pr = github.context.payload.pull_request;
 const type = github.context.payload.repository.private ? "private" : "public";
+const commitId = github.context.payload.after;
 let branch = github.context.payload.pull_request?.head.ref;
 let repoId = github.context.payload.pull_request?.head.repo.owner.id;
 
@@ -60,27 +61,33 @@ const startScan = async () => {
     responseToken?.data.access_token
       ? (token = responseToken.data.access_token)
       : token;
-    const scanStarting = await axios.post(
-      `${ctServer}/api/integration/github/start`,
-      {
-        project: repoName,
-        branch: branch,
-        account: repoOwner,
-        type: type,
-        githubtoken: githubtoken,
-        id: repoId,
-        action: true,
-      },
-      {
-        headers: {
-          Authorization: token,
-          "x-ct-organization": "codethreat",
+    let scanStarting;
+    try {
+      scanStarting = await axios.post(
+        `${ctServer}/api/integration/github/start`,
+        {
+          project: repoName,
+          branch: branch,
+          account: repoOwner,
+          type: type,
+          githubtoken: githubtoken,
+          id: repoId,
+          action: true,
+          commitId: commitId
         },
-      }
-    );
+        {
+          headers: {
+            Authorization: token,
+            "x-ct-organization": "codethreat",
+          },
+        }
+      );
+    } catch (error) {
+      throw new Error(error.response.data.message)
+    }
     return scanStarting;
   } catch (error) {
-    core.setFailed(error.message);
+    core.setFailed(error)
   }
 };
 
