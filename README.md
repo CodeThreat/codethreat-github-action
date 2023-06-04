@@ -1,6 +1,6 @@
 # Identify issues in your code with CodeThreat
 
-<img src="https://codethreat.com/images/Codethreat-Logo-kucuk-logo-p-500.png">
+<img src="https://www.codethreat.com/_next/static/media/ct-logo.0cc6530f.svg">
 
 [CodeThreat](https://codethreat.com) SAST solution has seamless integration with the [GitHub Actions](https://github.com/features/actions). While it's fairly easy to start security scans and working on the issues found on your code, this document provides details of the integration. 
 
