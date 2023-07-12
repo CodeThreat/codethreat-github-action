@@ -236,7 +236,7 @@ const findWeaknessTitles = (arr, keywords) => {
   return failedWeaknesss;
 };
 
-const newIssue = async (repoName, token, ctServer) => {
+const newIssue = async (repoName, token, ctServer, orgname) => {
   let newIssueResult;
   let query = {
     projectName: repoName,
@@ -248,7 +248,7 @@ const newIssue = async (repoName, token, ctServer) => {
     {
       headers: {
         Authorization: token,
-        "x-ct-organization": "codethreat",
+        "x-ct-organization": orgname,
       },
     }
   );
@@ -263,7 +263,7 @@ const newIssue = async (repoName, token, ctServer) => {
       {
         headers: {
           Authorization: token,
-          "x-ct-organization": "codethreat",
+          "x-ct-organization": orgname,
         },
       }
     );
@@ -275,7 +275,7 @@ const newIssue = async (repoName, token, ctServer) => {
   return allData;
 };
 
-const allIssue = async (repoName, token, ctServer) => {
+const allIssue = async (repoName, token, ctServer, orgname) => {
   let allIssueResult;
   let query = {
     projectName: repoName,
@@ -286,7 +286,7 @@ const allIssue = async (repoName, token, ctServer) => {
     {
       headers: {
         Authorization: token,
-        "x-ct-organization": "codethreat",
+        "x-ct-organization": orgname,
       },
     }
   );
@@ -301,7 +301,7 @@ const allIssue = async (repoName, token, ctServer) => {
       {
         headers: {
           Authorization: token,
-          "x-ct-organization": "codethreat",
+          "x-ct-organization": orgname,
         },
       }
     );

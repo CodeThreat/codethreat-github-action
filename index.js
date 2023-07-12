@@ -135,7 +135,7 @@ const awaitScan = async (sid) => {
           "\n"
       );
 
-      const newIssues = await newIssue(repoName, token, ctServer);
+      const newIssues = await newIssue(repoName, token, ctServer, orgname);
       const weaknessIsKeywords = output.weakness_is.split(",");
       const weaknessIsCount = findWeaknessTitles(newIssues, weaknessIsKeywords);
 
