@@ -21,6 +21,7 @@ const githubtoken = process.env.GITHUB_TOKEN;
 const ctServer = process.env.CT_SERVER;
 const username = process.env.USERNAME;
 const password = process.env.PASSWORD;
+const orgname = process.env.ORGNAME;
 const repoName = github.context.repo.repo;
 const repoOwner = github.context.repo.owner;
 const pr = github.context.payload.pull_request;
@@ -78,7 +79,7 @@ const startScan = async () => {
         {
           headers: {
             Authorization: token,
-            "x-ct-organization": "codethreat",
+            "x-ct-organization": orgname,
           },
         }
       );
@@ -99,7 +100,7 @@ const awaitScan = async (sid) => {
     scanProcess = await axios.get(`${ctServer}/api/scan/status/${sid}`, {
       headers: {
         Authorization: token,
-        "x-ct-organization": "codethreat",
+        "x-ct-organization": orgname,
       },
     });
     progressData.push(scanProcess.data.progress_data.progress);
