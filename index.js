@@ -232,8 +232,8 @@ const resultScan = async (riskS, started_at, ended_at, totalSeverities) => {
         "\n"
     );
 
-    const newIssues = await newIssue(repoName, token, ctServer);
-    const allIssues = await allIssue(repoName, token, ctServer);
+    const newIssues = await newIssue(repoName, token, ctServer, orgname);
+    const allIssues = await allIssue(repoName, token, ctServer, orgname);
 
     let durationTime = convertToHHMMSS(ended_at, started_at);
     const riskscore = getScore(riskS);
