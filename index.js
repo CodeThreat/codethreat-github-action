@@ -27,11 +27,13 @@ const repoOwner = github.context.repo.owner;
 const pr = github.context.payload.pull_request;
 const type = github.context.payload.repository.private ? "private" : "public";
 const commitId = github.context.payload.after;
-let branch = github.context.payload.pull_request?.head.ref;
-let repoId = github.context.payload.pull_request?.head.repo.owner.id;
+const committer = github.context.actor
+let branch = github.context.payload.pull_request?.base?.ref;
+let repoId = github.context.payload.pull_request?.head?.repo?.owner?.id;
 
 if (github.context.eventName === "push") {
-  branch = github.context.payload.repository.default_branch;
+  const parts = github.context.ref.split("/");
+  branch = parts.at(-1);
   repoId = github.context.payload.repository.id;
 }
 
@@ -74,7 +76,8 @@ const startScan = async () => {
           githubtoken: githubtoken,
           id: repoId,
           action: true,
-          commitId: commitId
+          commitId: commitId,
+          committer: committer
         },
         {
           headers: {
@@ -84,11 +87,11 @@ const startScan = async () => {
         }
       );
     } catch (error) {
-      throw new Error(error.response.data.message)
+      throw new Error(error.response.data.message);
     }
     return scanStarting;
   } catch (error) {
-    core.setFailed(error)
+    core.setFailed(error);
   }
 };
 
