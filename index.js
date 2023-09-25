@@ -27,7 +27,11 @@ const repoOwner = github.context.repo.owner;
 const pr = github.context.payload.pull_request;
 const type = github.context.payload.repository.private ? "private" : "public";
 const commitId = github.context.payload.after;
-const committer = github.context.actor
+const committer = github.context.actor;
+const commitMessage =
+  github.context.payload?.head_commit?.message ||
+  github.context.payload?.pull_request?.title;
+
 let branch = github.context.payload.pull_request?.base?.ref;
 let repoId = github.context.payload.pull_request?.head?.repo?.owner?.id;
 
@@ -77,7 +81,8 @@ const startScan = async () => {
           id: repoId,
           action: true,
           commitId: commitId,
-          committer: committer
+          committer: committer,
+          commitMessage: commitMessage,
         },
         {
           headers: {
