@@ -79,7 +79,7 @@ jobs:
 | weakness_is | ".*injection,buffer.over.read,mass.assigment" | Failed condition for found issues weakness id's. | String | No | N/A
 | automerge | true | If automerge is active and scan returns success, it allows PR to merge automatically . | Boolean | No | false
 | condition | "OR" | It checks failed arguments(max_number_of_critical, max_number_of_high)  using with "and" or "or". | String | No | AND
-| condition | true | If you don't want to wait for the pipeline to finish scanning, set it to false | Boolean | No | true
+| sync_scan | true | If you don't want to wait for the pipeline to finish scanning, set it to false | Boolean | No | true
 
 
 ### Secrets
