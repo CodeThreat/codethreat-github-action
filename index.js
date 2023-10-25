@@ -49,6 +49,7 @@ const output = failedArgs(failedArgsParsed);
 if (output.automerge === undefined) output.automerge = false;
 if (output.condition === undefined) output.condition = "AND";
 if (output.sync_scan === undefined) output.sync_scan = true;
+if (output.weakness_is === undefined) output.weakness_is = "";
 
 const octokit = new Octokit({
   auth: githubtoken,
@@ -133,10 +134,14 @@ const scanStatus = async (sid) => {
           " Low : " +
           scanProcess.severities.low);
 
-      const weaknessIsCount = findWeaknessTitles(
-        scanProcess.weaknessesArr,
-        output.weakness_is.split(",")
-      );
+      const weaknessArray = [...new Set(scanProcess.weaknessesArr)];
+      let weaknessIsCount;
+      if(output.weakness_is !== ""){
+        const keywords = output.weakness_is.split(",");
+        weaknessIsCount = findWeaknessTitles(weaknessArray, keywords);
+      } else {
+        weaknessIsCount = [];
+      }
 
       if (output.condition === "OR") {
         if (
@@ -159,7 +164,9 @@ const scanStatus = async (sid) => {
           core.setFailed(
             "!! FAILED_ARGS : Weaknesses entered in the weakness_is key were found during the scan."
           );
-          scanProcess.state === "end";
+          throw new Error(
+            "Pipeline interrupted because the FAILED_ARGS arguments you entered were found..."
+          );
         }
       } else if (output.condition === "AND") {
         if (
