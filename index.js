@@ -16,8 +16,8 @@ const {
 } = require("./utils");
 
 let token = process.env.ACCESS_TOKEN;
+let ctServer = process.env.CT_SERVER;
 const githubtoken = process.env.GITHUB_TOKEN;
-const ctServer = process.env.CT_SERVER;
 const username = process.env.USERNAME;
 const password = process.env.PASSWORD;
 const orgname = process.env.ORGNAME;
@@ -56,6 +56,7 @@ const octokit = new Octokit({
 });
 
 let scanProcess, authToken, checked;
+ctServer = ctServer.trim().replace(/\/+$/, '')
 
 console.log("------------------------------")
 console.log("CodeThreat Server: " + ctServer);
