@@ -1,4 +1,5 @@
 const axios = require("axios");
+const fs = require('fs').promises;
 
 const severityLevels = ["critical", "high", "medium", "low"];
 
@@ -217,6 +218,24 @@ const result = async (ctServer, sid, authToken, orgname) => {
   }
   return resultScan.data.report;
 }
+const saveSarif = async (ctServer, sid, authToken, orgname) => {
+  try {
+    const response = await axios.get(`${ctServer}/api/report/scan/create?sid=${sid}&reportType=sarif`, {
+      headers: {
+        Authorization: authToken,
+        "x-ct-organization": orgname,
+        "x-ct-from": 'github'
+      },
+    });
+
+    // Directly write the stringified JSON data to the file without using JSON.stringify
+    await fs.writeFile('codethreat.sarif.json', response.data.parsedResult);
+
+    console.log('SARIF report saved to codethreat.sarif.json');
+  } catch (error) {
+    throw new Error(`Failed to save SARIF report: ${error.response?.data?.message || error.message}`);
+  }
+};
 
 module.exports = {
   findWeaknessTitles,
@@ -226,5 +245,6 @@ module.exports = {
   create,
   start,
   status,
-  result
+  result,
+  saveSarif
 };

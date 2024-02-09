@@ -13,6 +13,7 @@ const {
   start,
   status,
   result,
+  saveSarif
 } = require("./utils");
 
 let token = process.env.ACCESS_TOKEN;
@@ -266,6 +267,9 @@ const resultScan = async (progress, severities, sid) => {
       }
     }
   }
+  saveSarif(ctServer, sid, authToken, orgname)
+  .then(() => console.log('SARIF report generation and saving completed.'))
+  .catch(error => console.error(error));
 };
 
 (async () => {

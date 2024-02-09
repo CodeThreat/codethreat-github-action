@@ -1,5 +1,9 @@
 name: 'CodeThreat Scanner'
-description: 'Codethreat Scanner'
+description: 'CodeThreat GitHub Action integrates with GitHub to perform code security tests on your code. It supports a variety of languages and frameworks, providing detailed security scans to identify potential issues.'
+author: 'CodeThreat, Inc'
+branding:
+  icon: 'check-square'
+  color: 'green'
 inputs:
   FAILED_ARGS:
     description: 'FAILED_ARGS'
