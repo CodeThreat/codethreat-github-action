@@ -228,8 +228,7 @@ const saveSarif = async (ctServer, sid, authToken, orgname) => {
       },
     });
 
-    // Directly write the stringified JSON data to the file without using JSON.stringify
-    await fs.writeFile('codethreat.sarif.json', response.data.parsedResult);
+    await fs.writeFile('codethreat.sarif.json', JSON.stringify(response.data.parsedResult));
 
     console.log('SARIF report saved to codethreat.sarif.json');
   } catch (error) {
