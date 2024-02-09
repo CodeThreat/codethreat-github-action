@@ -22,6 +22,7 @@ With CodeThreat custom rule engine, we have wide language and framework support 
 ## Github Security Feed Example
 
 <img src="./images/github_action.png">
+
 ## Usage
 
 Create a YAML file, such as the one below, `.github/workflows/ct.yml` under your source code project root directory. You can tailor the action triggers and `FAILED_ARGS` according to your needs.
