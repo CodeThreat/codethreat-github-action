@@ -59,7 +59,10 @@ jobs:
                  - condition: 'OR'
                  - automerge: true
                  - sync_scan: true
-
+      - name: Upload SARIF file
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: codethreat.sarif.json
 ```
 
 * As the name implies `FAILED_ARGS` contains the conditions for which you want to break the pipeline (action).
