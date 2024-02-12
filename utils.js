@@ -81,7 +81,7 @@ const check = async (ctServer, repoName, authToken, orgname) => {
       },
     });
   } catch (error) {
-    if (error.response.data.code === 400) {
+    if (error.response.data.code === 404 || error.response.data.code === 400) {
       return {
         type: null,
       };
