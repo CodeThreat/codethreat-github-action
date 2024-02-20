@@ -18,7 +18,7 @@ With CodeThreat custom rule engine, we have wide language and framework support 
 
 * A [CodeThreat](https://codethreat.com) account. Contact info@codethreat.com if you don't have one yet.
 * Aaand that's all! Now you are ready to jump!
-* 
+  
 ## Github Security Feed Example
 
 <img src="./images/github_action.png">
