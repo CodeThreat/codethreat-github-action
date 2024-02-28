@@ -57,12 +57,14 @@ jobs:
            ORGNAME: ${{ secrets.ORGNAME }}
         with: 
             FAILED_ARGS: |
-                 - max_number_of_critical: 4
-                 - max_number_of_high: 20
+                 - max_number_of_critical: 23
+                 - max_number_of_high: 23
                  - weakness_is: ".*injection,buffer.over.read,mass.assigment"
                  - condition: 'OR'
                  - automerge: true
                  - sync_scan: true
+                 - sca_max_number_of_critical: 23
+                 - sca_max_number_of_high: 23
       - name: Upload SARIF file
         uses: github/codeql-action/upload-sarif@v2
         with:

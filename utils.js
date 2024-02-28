@@ -104,7 +104,8 @@ const create = async (
   githubtoken,
   repoId,
   authToken,
-  orgname
+  orgname,
+  policyName
 ) => {
   let createProject;
   try {
@@ -145,7 +146,8 @@ const start = async (
   committer,
   commitMessage,
   authToken,
-  orgname
+  orgname,
+  policyName,
 ) => {
   let scanStart;
   try {
@@ -162,6 +164,7 @@ const start = async (
         commitMessage,
         type,
         githubtoken,
+        policy_id: policyName,
       },
       {
         headers: {
@@ -216,8 +219,9 @@ const result = async (ctServer, sid, authToken, orgname) => {
   } catch (error) {
     throw new Error(error.response.data.message);
   }
-  return resultScan.data.report;
+  return {report: resultScan.data.report, scaSeverityCounts: resultScan.data.scaSeverityCounts};
 }
+
 const saveSarif = async (ctServer, sid, authToken, orgname) => {
   try {
     const response = await axios.get(`${ctServer}/api/report/scan/create?sid=${sid}&reportType=sarif`, {
