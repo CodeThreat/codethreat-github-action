@@ -65,6 +65,7 @@ jobs:
                  - sync_scan: true
                  - sca_max_number_of_critical: 23
                  - sca_max_number_of_high: 23
+                 - policy_name: Advanced Security
       - name: Upload SARIF file
         uses: github/codeql-action/upload-sarif@v2
         with:
