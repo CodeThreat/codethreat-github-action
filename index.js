@@ -208,7 +208,7 @@ const scanStatus = async (sid) => {
 };
 
 const resultScan = async (progress, severities, sid, weaknessesArr) => {
-  const report = await result(ctServer, sid, authToken, orgname);
+  const report = await result(ctServer, sid, authToken, orgname, branch, repoName);
   const weaknessArray = [...new Set(weaknessesArr)];
       let weaknessIsCount;
       if(output.weakness_is !== ""){

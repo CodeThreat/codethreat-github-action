@@ -206,10 +206,10 @@ const status = async (ctServer, sid, authToken, orgname) => {
   };
 };
 
-const result = async (ctServer, sid, authToken, orgname) => {
+const result = async (ctServer, sid, authToken, orgname, branch, project_name) => {
   let resultScan;
   try {
-    resultScan = await axios.get(`${ctServer}/api/plugins/helper?sid=${sid}`, {
+    resultScan = await axios.get(`${ctServer}/api/plugins/helper?sid=${sid}&branch=${branch}&project_name=${project_name}`, {
       headers: {
         Authorization: authToken,
         "x-ct-organization": orgname,
