@@ -164,7 +164,7 @@ const start = async (
         commitMessage,
         type,
         githubtoken,
-        // policy_id: policyName,
+        policy_id: policyName,
       },
       {
         headers: {
