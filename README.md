@@ -10,6 +10,7 @@
   <h3 align="center">CodeThreat Github Action</h3>
 
 </p>
+
 [CodeThreat](https://codethreat.com) SAST solution has seamless integration with the [GitHub Actions](https://github.com/features/actions). While it's fairly easy to start security scans and working on the issues found on your code, this document provides details of the integration. 
 
 With CodeThreat custom rule engine, we have wide language and framework support without sacrificing quality.
