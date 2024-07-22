@@ -30,9 +30,6 @@ jobs:
            ORGNAME: ${{ secrets.ORGNAME }}
         with: 
             FAILED_ARGS: |
-                 - max_number_of_critical: 15
-                 - max_number_of_high: 15
-                 - weakness_is: ".*injection"
                  - condition: 'OR'
                  - automerge: false
                  - sync_scan: true
