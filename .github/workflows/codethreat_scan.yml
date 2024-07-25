@@ -4,13 +4,15 @@ on:
   # Trigger scan when pushing in master or pull requests, and when creating
   # a pull request.
   push:
-        branches:
-        - main
-        - master
+    branches:
+      - master
   pull_request:
-        branches:
-        - main
-        - master
+    branches:
+      - master
+
+permissions:
+  contents: read
+  
 jobs:
   codethreat_scanner:
     runs-on: ubuntu-latest
