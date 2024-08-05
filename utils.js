@@ -22,7 +22,7 @@ const findWeaknessTitles = (weaknessArray, keywords) => {
 
   const safeRegexPattern = new RegExp(sanitizedKeywords.join("|"), "i");
   const found = weaknessArray.filter((weakness) =>
-    safeRegexPattern.test(weakness)
+    safeRegexPattern.test(weakness.weakness_id)
   );
 
   return found;
