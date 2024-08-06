@@ -122,22 +122,12 @@ const scanStatus = async (sid) => {
       throw new Error("Scan Failed.");
     }
     if(!output.sync_scan){
-      console.log("Scan started successfuly.")
+      console.log("[CodeThreat]: Scan started successfuly.")
       return;
     }
     if (scanProcess.state !== "end") {
-      core.warning(
-        "Scanning... " +
-          "%" +
-          scanProcess.progress +
-          " - Critical : " +
-          scanProcess.severities.critical +
-          " High : " +
-          scanProcess.severities.high +
-          " Medium : " +
-          scanProcess.severities.medium +
-          " Low : " +
-          scanProcess.severities.low);
+
+      core.warning(`[CodeThreat]: Scan Status | Scanning... `);
 
       const weaknessArray = [...new Set(scanProcess.weaknessesArr)];
       let weaknessIsCount;
@@ -209,6 +199,10 @@ const scanStatus = async (sid) => {
 
 const resultScan = async (progress, severities, sid, weaknessesArr) => {
   const report = await result(ctServer, sid, authToken, orgname, branch, repoName);
+  if(report.type === null) {
+    console.log("[CodeThreat]: Scan completed successfully, but report not created.");
+    return;
+  }
   const weaknessArray = [...new Set(weaknessesArr)];
       let weaknessIsCount;
       if(output.weakness_is !== ""){
@@ -278,20 +272,8 @@ const resultScan = async (progress, severities, sid, weaknessesArr) => {
       );
     }
   }
-  const reason = `Scan Completed... %${progress}`;
-  core.warning(
-    "Result : " +
-      reason +
-      "- Critical : " +
-      severities.critical +
-      " High : " +
-      severities.high +
-      " Medium : " +
-      severities.medium +
-      " Low : " +
-      severities.low
-  );
-  console.log("Report Created")
+
+  core.warning("[CodeThreat]: Scan completed successfully.")
 
   if (github.context.eventName === "push") {
     try {
@@ -301,6 +283,7 @@ const resultScan = async (progress, severities, sid, weaknessesArr) => {
         commit_sha: commitId,
         body: report.report,
       });
+      core.warning("[CodeThreat]: Report Created.")
     } catch (error) {
       core.setFailed(error.message);
     }
@@ -320,6 +303,7 @@ const resultScan = async (progress, severities, sid, weaknessesArr) => {
           repo: repoName,
           pull_number: pr.number,
         });
+        core.warning("[CodeThreat]: Report Created.")
       } catch (error) {
         core.setFailed(error.message);
       }
@@ -332,13 +316,14 @@ const resultScan = async (progress, severities, sid, weaknessesArr) => {
           event: "COMMENT",
           body: report.report,
         });
+        core.warning("[CodeThreat]: Report Created.")
       } catch (error) {
         core.setFailed(error.message);
       }
     }
   }
   saveSarif(ctServer, sid, authToken, orgname)
-  .then(() => console.log('SARIF report generation and saving completed.'))
+  .then(() => console.log('[CodeThreat]: SARIF report generation and saving completed.'))
   .catch(error => console.error(error));
 };
 

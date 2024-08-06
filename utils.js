@@ -67,7 +67,7 @@ const login = async (ctServer, username, password) => {
   } catch (error) {
     throw new Error(error.response.data.message);
   }
-  console.log("Login successful")
+  console.log("[CodeThreat]: Login successful")
   return responseToken.data.access_token;
 };
 
@@ -217,6 +217,7 @@ const result = async (ctServer, sid, authToken, orgname, branch, project_name) =
       },
     });
   } catch (error) {
+    if(error.response.status === 404) return { type: null }
     throw new Error(error.response.data.message);
   }
   return {report: resultScan.data.report, scaSeverityCounts: resultScan.data.scaSeverityCounts};
@@ -234,7 +235,7 @@ const saveSarif = async (ctServer, sid, authToken, orgname) => {
 
     await fs.writeFile('codethreat.sarif.json', JSON.stringify(response.data.parsedResult));
 
-    console.log('SARIF report saved to codethreat.sarif.json');
+    console.log('[CodeThreat]: SARIF report saved to codethreat.sarif.json');
   } catch (error) {
     throw new Error(`Failed to save SARIF report: ${error.response?.data?.message || error.message}`);
   }

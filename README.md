@@ -98,7 +98,7 @@ jobs:
 
 ### Secrets
 
-- `ACCESS_TOKEN` – A given JWT token when you logged in your account in access_token field.
+- `ACCESS_TOKEN` – Your CodeThreat Account's token. It refers to the API Token that you need to generate in the application for CodeThreat.
 
 - `USERNAME` –  Your CodeThreat Account's username.
 
@@ -106,4 +106,4 @@ jobs:
 
 - `ORGNAME` – Your CodeThreat Account's orgname.
 
-- *`GITHUB_TOKEN` – It's provided by the github when action triggers. You do not need to add it separately from the secrets tab.
+- *`GITHUB_TOKEN` – It represents the Github token belonging to your account. There is no need to add it manually. Github adds this automatically. However, if you want to import a token with different authorizations, you can enter the secret section of your repo with the same name.
