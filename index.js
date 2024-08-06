@@ -131,7 +131,7 @@ const scanStatus = async (sid) => {
 
       const weaknessArray = [...new Set(scanProcess.weaknessesArr)];
       let weaknessIsCount;
-      if(output.weakness_is !== ""){
+      if(output.weakness_is && output.weakness_is !== undefined && output.weakness_is !== ""){
         const keywords = output.weakness_is.split(",");
         weaknessIsCount = findWeaknessTitles(weaknessArray, keywords);
       } else {
@@ -190,7 +190,7 @@ const scanStatus = async (sid) => {
     } else {
       setTimeout(function () {
         scanStatus(sid);
-      }, 5000);
+      }, 30000);
     }
   } catch (error) {
     core.setFailed(error.message);
@@ -205,7 +205,7 @@ const resultScan = async (progress, severities, sid, weaknessesArr) => {
   }
   const weaknessArray = [...new Set(weaknessesArr)];
       let weaknessIsCount;
-      if(output.weakness_is !== ""){
+      if(output.weakness_is && output.weakness_is !== undefined && output.weakness_is !== ""){
         const keywords = output.weakness_is.split(",");
         weaknessIsCount = findWeaknessTitles(weaknessArray, keywords);
       } else {
