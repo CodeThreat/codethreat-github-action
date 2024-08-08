@@ -107,3 +107,5 @@ jobs:
 - `ORGNAME` – Your CodeThreat Account's orgname.
 
 - *`GITHUB_TOKEN` – It represents the Github token belonging to your account. There is no need to add it manually. Github adds this automatically. However, if you want to import a token with different authorizations, you can enter the secret section of your repo with the same name.
+
+- There may be some permission restrictions for GITHUB_TOKEN. To remove them, first make sure that the "Read and Write Permission" option is selected in the settings section of your repository. If you are using CodeThreat Action in an organization, you can do this in the settings section of your organization. Another method is to add the permission line to the .yaml file, for example: You can solve this situation with ``permissions: write-all``.
