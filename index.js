@@ -35,9 +35,7 @@ let repoId = github.context.payload.repository.id;
 let pr;
 if (github.context.eventName === "pull_request") {
   pr = github.context.payload.pull_request;
-  branch = pr.head.ref.includes("refs/heads/")
-  ? pr.head.ref.split("refs/heads/")[1]
-  : pr.head.ref;
+  branch = pr.head.ref
   repoId = pr.head.repo.owner.id;
 }
 
