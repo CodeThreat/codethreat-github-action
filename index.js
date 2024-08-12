@@ -26,10 +26,9 @@ const orgname = process.env.ORGNAME;
 const repoName = github.context.repo.repo;
 const repoOwner = github.context.repo.owner;
 const type = github.context.payload.repository.private ? "private" : "public";
-const parts = github.context.ref.includes("refs/heads/")
+let branch = github.context.ref.includes("refs/heads/")
           ? github.context.ref.split("refs/heads/")[1]
           : github.context.ref
-let branch = parts?.at(-1);
 let repoId = github.context.payload.repository.id;
 
 let pr;
