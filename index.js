@@ -26,14 +26,18 @@ const orgname = process.env.ORGNAME;
 const repoName = github.context.repo.repo;
 const repoOwner = github.context.repo.owner;
 const type = github.context.payload.repository.private ? "private" : "public";
-const parts = github.context.ref?.split("/");
+const parts = github.context.ref.includes("refs/heads/")
+          ? github.context.ref.split("refs/heads/")[1]
+          : github.context.ref
 let branch = parts?.at(-1);
 let repoId = github.context.payload.repository.id;
 
 let pr;
 if (github.context.eventName === "pull_request") {
   pr = github.context.payload.pull_request;
-  branch = pr.base.ref;
+  branch = pr.head.ref.includes("refs/heads/")
+  ? pr.head.ref.split("refs/heads/")[1]
+  : pr.head.ref;
   repoId = pr.head.repo.owner.id;
 }
 
