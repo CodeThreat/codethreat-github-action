@@ -193,7 +193,7 @@ const status = async (ctServer, sid, authToken, orgname) => {
     throw new Error(error.response.data.message);
   }
   severityLevels.forEach((level) => {
-    severities[level] = scanProcess.data.severities?.[level] || 0;
+    severities[level] = scanProcess.data.sast_severities?.[level] || 0;
   });
   return {
     progress: scanProcess.data.progress_data.progress,
