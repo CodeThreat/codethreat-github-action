@@ -173,10 +173,20 @@ const start = async (
         },
       }
     );
+    if (scanStart.status === 200 && scanStart.data.scan_id) return scanStart;
+    else {
+      console.log(
+        `Failed to start scan. Status: ${JSON.stringify(
+          scanStart.status
+        )} Error: ${JSON.stringify(scanStart.data)}`
+      );
+      throw new Error(JSON.stringify(scanStart.data));
+    }
   } catch (error) {
-    throw new Error(error.response.data.message);
+    if (error.response && error.response.data)
+      throw new Error(JSON.stringify(error.response.data));
+    else throw new Error(error);
   }
-  return scanStart;
 };
 
 const status = async (ctServer, sid, authToken, orgname) => {

@@ -335,7 +335,9 @@ const resultScan = async (progress, severities, sid, weaknessesArr) => {
     checked = await checkProject();
     if (checked.type === null) await createProject();
     start = await startScan();
-    await scanStatus(start.data.scan_id);
+    if (start && start.data && start.data.scan_id) {
+      await scanStatus(start.data.scan_id);
+    }
   } catch (error) {
     throw new Error(error);
   }
