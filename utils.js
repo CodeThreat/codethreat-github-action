@@ -1,5 +1,5 @@
 const axios = require("axios");
-const fs = require('fs').promises;
+const fs = require("fs").promises;
 
 const severityLevels = ["critical", "high", "medium", "low"];
 
@@ -38,13 +38,13 @@ const failedArgs = (failedArgsParsed) => {
         weakness_is,
         automerge,
         condition,
-        sync_scan
+        sync_scan,
       }
     ) => {
       return {
         ...acc,
         max_number_of_critical:
-        max_number_of_critical || acc.max_number_of_critical,
+          max_number_of_critical || acc.max_number_of_critical,
         max_number_of_high: max_number_of_high || acc.max_number_of_high,
         weakness_is: weakness_is || acc.weakness_is,
         automerge: automerge || acc.automerge,
@@ -67,7 +67,7 @@ const login = async (ctServer, username, password) => {
   } catch (error) {
     throw new Error(error.response.data.message);
   }
-  console.log("[CodeThreat]: Login successful")
+  console.log("[CodeThreat]: Login successful");
   return responseToken.data.access_token;
 };
 
@@ -81,10 +81,19 @@ const check = async (ctServer, repoName, authToken, orgname) => {
       },
     });
   } catch (error) {
-    if (error.response.data.code === 404 || error.response.data.code === 400) {
+    if (
+      (error.response &&
+        error.response.data &&
+        error.response.data.code === 404) ||
+      error.response.data.code === 400
+    ) {
       return {
         type: null,
       };
+    } else if (error.response && error.response.data) {
+      throw new Error(error.response.data);
+    } else {
+      throw new Error(error);
     }
   }
   if (checkProject.data.type !== "github") {
@@ -130,7 +139,7 @@ const create = async (
   } catch (error) {
     throw new Error(error.response.data.message);
   }
-  console.log("Project Created.")
+  console.log("Project Created.");
   return createProject;
 };
 
@@ -147,7 +156,7 @@ const start = async (
   commitMessage,
   authToken,
   orgname,
-  policyName,
+  policyName
 ) => {
   let scanStart;
   try {
@@ -196,7 +205,7 @@ const status = async (ctServer, sid, authToken, orgname) => {
       headers: {
         Authorization: authToken,
         "x-ct-organization": orgname,
-        "plugin": true,
+        plugin: true,
       },
     });
   } catch (error) {
@@ -216,38 +225,61 @@ const status = async (ctServer, sid, authToken, orgname) => {
   };
 };
 
-const result = async (ctServer, sid, authToken, orgname, branch, project_name) => {
+const result = async (
+  ctServer,
+  sid,
+  authToken,
+  orgname,
+  branch,
+  project_name
+) => {
   let resultScan;
   try {
-    resultScan = await axios.get(`${ctServer}/api/plugins/helper?sid=${sid}&branch=${branch}&project_name=${project_name}`, {
-      headers: {
-        Authorization: authToken,
-        "x-ct-organization": orgname,
-        "x-ct-from": 'github'
-      },
-    });
+    resultScan = await axios.get(
+      `${ctServer}/api/plugins/helper?sid=${sid}&branch=${branch}&project_name=${project_name}`,
+      {
+        headers: {
+          Authorization: authToken,
+          "x-ct-organization": orgname,
+          "x-ct-from": "github",
+        },
+      }
+    );
   } catch (error) {
-    if(error.response.status === 404) return { type: null }
+    if (error.response.status === 404) return { type: null };
     throw new Error(error.response.data.message);
   }
-  return {report: resultScan.data.report, scaSeverityCounts: resultScan.data.scaSeverityCounts};
-}
+  return {
+    report: resultScan.data.report,
+    scaSeverityCounts: resultScan.data.scaSeverityCounts,
+  };
+};
 
 const saveSarif = async (ctServer, sid, authToken, orgname) => {
   try {
-    const response = await axios.get(`${ctServer}/api/report/scan/create?sid=${sid}&reportType=sarif`, {
-      headers: {
-        Authorization: authToken,
-        "x-ct-organization": orgname,
-        "x-ct-from": 'github'
-      },
-    });
+    const response = await axios.get(
+      `${ctServer}/api/report/scan/create?sid=${sid}&reportType=sarif`,
+      {
+        headers: {
+          Authorization: authToken,
+          "x-ct-organization": orgname,
+          "x-ct-from": "github",
+        },
+      }
+    );
 
-    await fs.writeFile('codethreat.sarif.json', JSON.stringify(response.data.parsedResult));
+    await fs.writeFile(
+      "codethreat.sarif.json",
+      JSON.stringify(response.data.parsedResult)
+    );
 
-    console.log('[CodeThreat]: SARIF report saved to codethreat.sarif.json');
+    console.log("[CodeThreat]: SARIF report saved to codethreat.sarif.json");
   } catch (error) {
-    throw new Error(`Failed to save SARIF report: ${error.response?.data?.message || error.message}`);
+    throw new Error(
+      `Failed to save SARIF report: ${
+        error.response?.data?.message || error.message
+      }`
+    );
   }
 };
 
@@ -260,5 +292,5 @@ module.exports = {
   start,
   status,
   result,
-  saveSarif
+  saveSarif,
 };
