@@ -91,7 +91,7 @@ const check = async (ctServer, repoName, authToken, orgname) => {
         type: null,
       };
     } else if (error.response && error.response.data) {
-      throw new Error(error.response.data);
+      throw new Error(JSON.stringify(error.response.data));
     } else {
       throw new Error(error);
     }
