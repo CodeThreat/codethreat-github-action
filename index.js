@@ -323,7 +323,7 @@ const resultScan = async (progress, severities, sid, weaknessesArr) => {
       }
     }
   }
-  saveSarif(ctServer, sid, authToken, orgname)
+  saveSarif(ctServer, sid, authToken, orgname, repoName, branch)
   .then(() => console.log('[CodeThreat]: SARIF report generation and saving completed.'))
   .catch(error => console.error(error));
 };

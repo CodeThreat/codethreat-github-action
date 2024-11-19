@@ -187,9 +187,9 @@ const start = async (
       console.log(
         `Failed to start scan. Status: ${JSON.stringify(
           scanStart.status
-        )} Error: ${JSON.stringify(scanStart.data)}`
+        )} Error: ${JSON.stringify(scanStart.data || {error: "Unexpected Error: Scan Start"} )}`
       );
-      throw new Error(JSON.stringify(scanStart.data));
+      throw new Error(JSON.stringify(scanStart.data || {error: "Unexpected Error: Scan Start"}));
     }
   } catch (error) {
     if (error.response && error.response.data)
@@ -255,10 +255,10 @@ const result = async (
   };
 };
 
-const saveSarif = async (ctServer, sid, authToken, orgname) => {
+const saveSarif = async (ctServer, sid, authToken, orgname, projectName, branch) => {
   try {
     const response = await axios.get(
-      `${ctServer}/api/report/scan/create?sid=${sid}&reportType=sarif`,
+      `${ctServer}/api/report/scan/create?sid=${sid}&projectName=${projectName}&branch=${branch}&reportType=sarif`,
       {
         headers: {
           Authorization: authToken,
