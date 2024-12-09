@@ -1,6 +1,14 @@
 const axios = require("axios");
 const fs = require("fs").promises;
 
+const {
+  checkLower1_7_8,
+  checkUpper1_7_8,
+  compareVersions,
+} = require("./adapter");
+
+let apiVersion;
+
 const severityLevels = ["critical", "high", "medium", "low"];
 
 let severities = {
@@ -68,39 +76,29 @@ const login = async (ctServer, username, password) => {
     throw new Error(error.response.data.message);
   }
   console.log("[CodeThreat]: Login successful");
+  if (responseToken.headers["x-api-version"])
+    apiVersion = responseToken.headers["x-api-version"];
   return responseToken.data.access_token;
 };
 
 const check = async (ctServer, repoName, authToken, orgname) => {
   let checkProject;
-  try {
-    checkProject = await axios.get(`${ctServer}/api/project?key=${repoName}`, {
-      headers: {
-        Authorization: authToken,
-        "x-ct-organization": orgname,
-      },
-    });
-  } catch (error) {
-    if (
-      (error.response &&
-        error.response.data &&
-        error.response.data.code === 404) ||
-      error.response.data.code === 400
-    ) {
-      return {
-        type: null,
-      };
-    } else if (error.response && error.response.data) {
-      throw new Error(JSON.stringify(error.response.data));
-    } else {
-      throw new Error(error);
-    }
-  }
-  if (checkProject.data.type !== "github") {
-    throw new Error(
-      "There is a project with this name, but its type is not github."
+  const compareVersion = compareVersions("1.7.8", apiVersion);
+  if (compareVersion === 1)
+    checkProject = await checkLower1_7_8(
+      ctServer,
+      repoName,
+      authToken,
+      orgname
     );
-  }
+  else if (compareVersion === -1)
+    checkProject = await checkUpper1_7_8(
+      ctServer,
+      repoName,
+      authToken,
+      orgname
+    );
+
   return checkProject;
 };
 
@@ -187,9 +185,15 @@ const start = async (
       console.log(
         `Failed to start scan. Status: ${JSON.stringify(
           scanStart.status
-        )} Error: ${JSON.stringify(scanStart.data || {error: "Unexpected Error: Scan Start"} )}`
+        )} Error: ${JSON.stringify(
+          scanStart.data || { error: "Unexpected Error: Scan Start" }
+        )}`
       );
-      throw new Error(JSON.stringify(scanStart.data || {error: "Unexpected Error: Scan Start"}));
+      throw new Error(
+        JSON.stringify(
+          scanStart.data || { error: "Unexpected Error: Scan Start" }
+        )
+      );
     }
   } catch (error) {
     if (error.response && error.response.data)
@@ -255,7 +259,14 @@ const result = async (
   };
 };
 
-const saveSarif = async (ctServer, sid, authToken, orgname, projectName, branch) => {
+const saveSarif = async (
+  ctServer,
+  sid,
+  authToken,
+  orgname,
+  projectName,
+  branch
+) => {
   try {
     const response = await axios.get(
       `${ctServer}/api/report/scan/create?sid=${sid}&projectName=${projectName}&branch=${branch}&reportType=sarif`,
