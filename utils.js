@@ -73,12 +73,41 @@ const login = async (ctServer, username, password) => {
       client_secret: password,
     });
   } catch (error) {
-    throw new Error(error.response.data.message);
+    if (error.response && error.response.data) {
+      throw new Error(JSON.stringify(error.response.data));
+    } else {
+      throw new Error(error);
+    }
   }
   console.log("[CodeThreat]: Login successful");
-  if (responseToken.headers["x-api-version"])
+  if (responseToken.headers["x-api-version"]) {
     apiVersion = responseToken.headers["x-api-version"];
+    console.log(`[CodeThreat]: Api Version: ${apiVersion}`);
+  }
+
   return responseToken.data.access_token;
+};
+
+const getOrg = async (ctServer, token, orgname) => {
+  let response;
+  try {
+    response = await axios.get(`${ctServer}/api/organization?key=${orgname}`, {
+      headers: {
+        Authorization: token,
+        "x-ct-organization": orgname,
+      },
+    });
+  } catch (error) {
+    if (error.response && error.response.data) {
+      throw new Error(JSON.stringify(error.response.data));
+    } else {
+      throw new Error(error);
+    }
+  }
+  if (response.headers["x-api-version"]) {
+    apiVersion = response.headers["x-api-version"];
+    console.log(`[CodeThreat]: Api Version: ${apiVersion}`);
+  }
 };
 
 const check = async (ctServer, repoName, authToken, orgname) => {
@@ -135,7 +164,11 @@ const create = async (
       }
     );
   } catch (error) {
-    throw new Error(error.response.data.message);
+    if (error.response && error.response.data) {
+      throw new Error(JSON.stringify(error.response.data));
+    } else {
+      throw new Error(error);
+    }
   }
   console.log("Project Created.");
   return createProject;
@@ -213,7 +246,11 @@ const status = async (ctServer, sid, authToken, orgname) => {
       },
     });
   } catch (error) {
-    throw new Error(error.response.data.message);
+    if (error.response && error.response.data) {
+      throw new Error(JSON.stringify(error.response.data));
+    } else {
+      throw new Error(error);
+    }
   }
   severityLevels.forEach((level) => {
     severities[level] = scanProcess.data.sast_severities?.[level] || 0;
@@ -304,4 +341,5 @@ module.exports = {
   status,
   result,
   saveSarif,
+  getOrg
 };

@@ -13,7 +13,8 @@ const {
   start,
   status,
   result,
-  saveSarif
+  saveSarif,
+  getOrg
 } = require("./utils");
 
 let token = process.env.ACCESS_TOKEN;
@@ -71,6 +72,7 @@ console.log("------------------------------")
 const loginIn = async () => {
   if (token && (!username || !password)) {
     authToken = token;
+    await getOrg(ctServer, authToken, orgname)
   } else if (username && password) {
     authToken = await login(ctServer, username, password);
   } else {
