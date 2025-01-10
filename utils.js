@@ -331,6 +331,24 @@ const saveSarif = async (
   }
 };
 
+const getEnvVars = () => {
+  const token = process.env.ACCESS_TOKEN;
+  const ctServer = (process.env.CT_SERVER || '').trim().replace(/\/+$/, '');
+  const githubtoken = process.env.GITHUB_TOKEN;
+  const username = process.env.USERNAME;
+  const password = process.env.PASSWORD;
+  const orgname = process.env.ORGNAME;
+
+  return {
+    token,
+    ctServer,
+    githubtoken,
+    username,
+    password,
+    orgname
+  };
+};
+
 module.exports = {
   findWeaknessTitles,
   failedArgs,
@@ -341,5 +359,6 @@ module.exports = {
   status,
   result,
   saveSarif,
-  getOrg
+  getOrg,
+  getEnvVars
 };

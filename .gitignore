@@ -1,3 +1,34 @@
+# Dependencies
+node_modules/
+package-lock.json
+
+# Test coverage
+coverage/
+.nyc_output/
+
+# IDE files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Build output
+dist/
+build/
+
+# OS files
 .DS_Store
-node_modules
-target
+Thumbs.db
+target/
+
+# Test files
+tests/
+
+# Coverage
+coverage/

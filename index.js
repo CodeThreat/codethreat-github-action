@@ -1,6 +1,5 @@
 const core = require("@actions/core");
 const github = require("@actions/github");
-const axios = require("axios");
 const { Octokit } = require("@octokit/rest");
 const yaml = require("js-yaml");
 
@@ -14,15 +13,16 @@ const {
   status,
   result,
   saveSarif,
-  getOrg
+  getOrg,
+  getEnvVars
 } = require("./utils");
 
-let token = process.env.ACCESS_TOKEN;
-let ctServer = process.env.CT_SERVER;
-const githubtoken = process.env.GITHUB_TOKEN;
-const username = process.env.USERNAME;
-const password = process.env.PASSWORD;
-const orgname = process.env.ORGNAME;
+const getOctokit = () => {
+  const { githubtoken } = getEnvVars();
+  return new Octokit({
+    auth: githubtoken,
+  });
+};
 
 const repoName = github.context.repo.repo;
 const repoOwner = github.context.repo.owner;
@@ -55,36 +55,41 @@ if (output.sync_scan === undefined) output.sync_scan = true;
 if (output.weakness_is === undefined) output.weakness_is = "";
 if (output.policy_name === undefined) output.policy_name = 'Advanced Security';
 
-const octokit = new Octokit({
-  auth: githubtoken,
-});
-
-let scanProcess, authToken, checked;
-ctServer = ctServer.trim().replace(/\/+$/, '')
+let scanProcess, authToken;
 
 console.log("------------------------------")
-console.log("CodeThreat Server: " + ctServer);
+console.log("CodeThreat Server: " + getEnvVars().ctServer);
 console.log("User: " + repoOwner);
 console.log("Project: " + repoName);
-console.log("Organization: " + orgname)
+console.log("Organization: " + getEnvVars().orgname)
 console.log("------------------------------")
 
 const loginIn = async () => {
-  if (token && (!username || !password)) {
-    authToken = token;
-    await getOrg(ctServer, authToken, orgname)
-  } else if (username && password) {
-    authToken = await login(ctServer, username, password);
-  } else {
-    core.setFailed("Please enter username and password or token.");
+  try {
+    const { token, ctServer, username, password, orgname } = getEnvVars();
+    if (token && (!username || !password)) {
+      authToken = token;
+      await getOrg(ctServer, authToken, orgname);
+    } else if (username && password) {
+      authToken = await login(ctServer, username, password);
+    } else {
+      const error = new Error("Please enter username and password or token.");
+      core.setFailed(error.message);
+      throw error;
+    }
+  } catch (error) {
+    core.setFailed(error.message);
+    throw error;
   }
 };
 
 const checkProject = async () => {
+  const { ctServer, orgname } = getEnvVars();
   return await check(ctServer, repoName, authToken, orgname);
 };
 
 const createProject = async () => {
+  const { ctServer, githubtoken, orgname } = getEnvVars();
   return await create(
     ctServer,
     repoName,
@@ -100,7 +105,8 @@ const createProject = async () => {
 };
 
 const startScan = async () => {
-  return await start(
+  const { ctServer, githubtoken, orgname } = getEnvVars();
+  const scanResult = await start(
     ctServer,
     repoName,
     branch,
@@ -115,22 +121,28 @@ const startScan = async () => {
     orgname,
     output.policy_name,
   );
+
+  if (scanResult && scanResult.data && scanResult.data.scan_id) {
+    await scanStatus(scanResult.data.scan_id);
+  }
+  return scanResult;
 };
 
 const scanStatus = async (sid) => {
   try {
+    const { ctServer, orgname } = getEnvVars();
     scanProcess = await status(ctServer, sid, authToken, orgname);
     if (scanProcess.state === "failure") {
-      core.setFailed("Scan Failed.");
-      throw new Error("Scan Failed.");
+      const error = new Error("Scan Failed.");
+      core.setFailed(error.message);
+      throw error;
     }
     if(!output.sync_scan){
       console.log("[CodeThreat]: Scan started successfuly.")
       return;
     }
     if (scanProcess.state !== "end") {
-
-      core.warning(`[CodeThreat]: Scan Status | Scanning... `);
+      core.warning("[CodeThreat]: Scan Status | Scanning... ");
 
       const weaknessArray = [...new Set(scanProcess.weaknessesArr)];
       let weaknessIsCount;
@@ -146,25 +158,22 @@ const scanStatus = async (sid) => {
           output.max_number_of_critical &&
           output.max_number_of_critical < scanProcess.severities.critical
         ) {
-          core.setFailed("!! FAILED_ARGS : Critical limit exceeded.");
-          throw new Error(
-            "Pipeline interrupted because the FAILED_ARGS arguments you entered were found..."
-          );
+          const error = new Error("!! FAILED_ARGS : Critical limit exceeded.");
+          core.setFailed(error.message);
+          throw error;
         } else if (
           output.max_number_of_critical &&
           output.max_number_of_high < scanProcess.severities.high
         ) {
-          core.setFailed("!! FAILED_ARGS : High limit exceeded. ");
-          throw new Error(
-            "Pipeline interrupted because the FAILED_ARGS arguments you entered were found..."
-          );
+          const error = new Error("!! FAILED_ARGS : High limit exceeded.");
+          core.setFailed(error.message);
+          throw error;
         } else if (weaknessIsCount.length > 0) {
-          core.setFailed(
+          const error = new Error(
             "!! FAILED_ARGS : Weaknesses entered in the weakness_is key were found during the scan."
           );
-          throw new Error(
-            "Pipeline interrupted because the FAILED_ARGS arguments you entered were found..."
-          );
+          core.setFailed(error.message);
+          throw error;
         }
       } else if (output.condition === "AND") {
         if (
@@ -174,12 +183,11 @@ const scanStatus = async (sid) => {
             output.max_number_of_high < scanProcess.severities.high) ||
           weaknessIsCount.length > 0
         ) {
-          core.setFailed(
+          const error = new Error(
             "!! FAILED ARGS : Not all conditions are met according to the given arguments."
           );
-          throw new Error(
-            "Pipeline interrupted because the FAILED_ARGS arguments you entered were found..."
-          );
+          core.setFailed(error.message);
+          throw error;
         }
       }
     }
@@ -197,150 +205,165 @@ const scanStatus = async (sid) => {
     }
   } catch (error) {
     core.setFailed(error.message);
+    throw error;
   }
 };
 
 const resultScan = async (progress, severities, sid, weaknessesArr) => {
-  const report = await result(ctServer, sid, authToken, orgname, branch, repoName);
-  if(report.type === null) {
-    console.log("[CodeThreat]: Scan completed successfully, but report not created.");
-    return;
-  }
-  const weaknessArray = [...new Set(weaknessesArr)];
-      let weaknessIsCount;
-      if(output.weakness_is && output.weakness_is !== undefined && output.weakness_is !== ""){
-        const keywords = output.weakness_is.split(",");
-        weaknessIsCount = findWeaknessTitles(weaknessArray, keywords);
-      } else {
-        weaknessIsCount = [];
-      }
-  if (output.condition === "OR") {
-    if (
-      output.max_number_of_critical &&
-      output.max_number_of_critical < scanProcess.severities.critical
-    ) {
-      console.log("!! FAILED_ARGS : Critical limit exceeded.");
-      throw new Error(
-        "Pipeline interrupted because the FAILED_ARGS arguments you entered were found..."
-      );
-    } else if (
-      output.max_number_of_high &&
-      output.max_number_of_high < scanProcess.severities.high
-    ) {
-      console.log("!! FAILED_ARGS : High limit exceeded. ");
-      throw new Error(
-        "Pipeline interrupted because the FAILED_ARGS arguments you entered were found..."
-      );
-    } else if (weaknessIsCount.length > 0) {
-      console.log(
-        "!! FAILED_ARGS : Weaknesses entered in the weakness_is key were found during the scan."
-      );
-      throw new Error(
-        "Pipeline interrupted because the FAILED_ARGS arguments you entered were found..."
-      );
-    } else if (
-      output.sca_max_number_of_critical &&
-      output.sca_max_number_of_critical < report.scaSeverityCounts.Critical
-    ) {
-      console.log("!! FAILED_ARGS : Sca Critical limit exceeded.");
-      throw new Error(
-        "Pipeline interrupted because the FAILED_ARGS arguments you entered were found..."
-      );
-    } else if (
-      output.sca_max_number_of_high &&
-      output.sca_max_number_of_high < report.scaSeverityCounts.High
-    ) {
-      console.log("!! FAILED_ARGS : Sca High limit exceeded. ");
-      throw new Error(
-        "Pipeline interrupted because the FAILED_ARGS arguments you entered were found..."
-      );
+  try {
+    const { ctServer, orgname } = getEnvVars();
+    const report = await result(ctServer, sid, authToken, orgname, branch, repoName);
+    if(!report || report.type === null) {
+      console.log("[CodeThreat]: Scan completed successfully, but report not created.");
+      return;
     }
-  } else if (output.condition === "AND") {
-    if (
-      (output.max_number_of_critical &&
-        output.max_number_of_critical < scanProcess.severities.critical) ||
-      (output.max_number_of_high &&
-        output.max_number_of_high < scanProcess.severities.high) ||
-      (output.sca_max_number_of_high &&
-        output.sca_max_number_of_high < report.scaSeverityCounts.High) ||
-      (output.sca_max_number_of_critical &&
-        output.sca_max_number_of_critical < report.scaSeverityCounts.Critical) ||
-      weaknessIsCount.length > 0
-    ) {
-      console.log(
-        "!! FAILED ARGS : Not all conditions are met according to the given arguments."
-      );
-      throw new Error(
-        "Pipeline interrupted because the FAILED_ARGS arguments you entered were found..."
-      );
-    }
-  }
-
-  core.warning("[CodeThreat]: Scan completed successfully.")
-
-  if (github.context.eventName === "push") {
-    try {
-      await octokit.repos.createCommitComment({
-        owner: repoOwner,
-        repo: repoName,
-        commit_sha: commitId,
-        body: report.report,
-      });
-      core.warning("[CodeThreat]: Report Created.")
-    } catch (error) {
-      core.setFailed(error.message);
-    }
-  }
-
-  if (github.context.eventName === "pull_request") {
-    if (output.automerge) {
-      try {
-        await octokit.pulls.update({
-          owner: repoOwner,
-          repo: repoName,
-          pull_number: pr.number,
-          state: "closed",
-        });
-        await octokit.pulls.merge({
-          owner: repoOwner,
-          repo: repoName,
-          pull_number: pr.number,
-        });
-        core.warning("[CodeThreat]: Report Created.")
-      } catch (error) {
-        core.setFailed(error.message);
-      }
+    const weaknessArray = [...new Set(weaknessesArr)];
+    let weaknessIsCount;
+    if(output.weakness_is && output.weakness_is !== undefined && output.weakness_is !== ""){
+      const keywords = output.weakness_is.split(",");
+      weaknessIsCount = findWeaknessTitles(weaknessArray, keywords);
     } else {
+      weaknessIsCount = [];
+    }
+    if (output.condition === "OR") {
+      if (
+        output.max_number_of_critical &&
+        output.max_number_of_critical < scanProcess.severities.critical
+      ) {
+        const error = new Error("!! FAILED_ARGS : Critical limit exceeded.");
+        core.setFailed(error.message);
+        throw error;
+      } else if (
+        output.max_number_of_high &&
+        output.max_number_of_high < scanProcess.severities.high
+      ) {
+        const error = new Error("!! FAILED_ARGS : High limit exceeded.");
+        core.setFailed(error.message);
+        throw error;
+      } else if (weaknessIsCount.length > 0) {
+        const error = new Error(
+          "!! FAILED_ARGS : Weaknesses entered in the weakness_is key were found during the scan."
+        );
+        core.setFailed(error.message);
+        throw error;
+      } else if (
+        output.sca_max_number_of_critical &&
+        output.sca_max_number_of_critical < report.scaSeverityCounts.Critical
+      ) {
+        const error = new Error("!! FAILED_ARGS : Sca Critical limit exceeded.");
+        core.setFailed(error.message);
+        throw error;
+      } else if (
+        output.sca_max_number_of_high &&
+        output.sca_max_number_of_high < report.scaSeverityCounts.High
+      ) {
+        const error = new Error("!! FAILED_ARGS : Sca High limit exceeded.");
+        core.setFailed(error.message);
+        throw error;
+      }
+    } else if (output.condition === "AND") {
+      if (
+        (output.max_number_of_critical &&
+          output.max_number_of_critical < scanProcess.severities.critical) ||
+        (output.max_number_of_high &&
+          output.max_number_of_high < scanProcess.severities.high) ||
+        (output.sca_max_number_of_high &&
+          output.sca_max_number_of_high < report.scaSeverityCounts.High) ||
+        (output.sca_max_number_of_critical &&
+          output.sca_max_number_of_critical < report.scaSeverityCounts.Critical) ||
+        weaknessIsCount.length > 0
+      ) {
+        const error = new Error(
+          "!! FAILED ARGS : Not all conditions are met according to the given arguments."
+        );
+        core.setFailed(error.message);
+        throw error;
+      }
+    }
+
+    core.info("[CodeThreat]: Scan completed successfully.");
+
+    const octokit = getOctokit();
+
+    if (github.context.eventName === "push") {
       try {
-        await octokit.pulls.createReview({
+        await octokit.repos.createCommitComment({
           owner: repoOwner,
           repo: repoName,
-          pull_number: pr.number,
-          event: "COMMENT",
+          commit_sha: commitId,
           body: report.report,
         });
-        core.warning("[CodeThreat]: Report Created.")
+        core.info("[CodeThreat]: Report Created.");
       } catch (error) {
         core.setFailed(error.message);
+        throw error;
       }
     }
+
+    if (github.context.eventName === "pull_request") {
+      if (output.automerge) {
+        try {
+          await octokit.pulls.update({
+            owner: repoOwner,
+            repo: repoName,
+            pull_number: pr.number,
+            state: "closed",
+          });
+          await octokit.pulls.merge({
+            owner: repoOwner,
+            repo: repoName,
+            pull_number: pr.number,
+          });
+          core.info("[CodeThreat]: Report Created.");
+        } catch (error) {
+          core.setFailed(error.message);
+          throw error;
+        }
+      } else {
+        try {
+          await octokit.pulls.createReview({
+            owner: repoOwner,
+            repo: repoName,
+            pull_number: pr.number,
+            event: "COMMENT",
+            body: report.report,
+          });
+          core.info("[CodeThreat]: Report Created.");
+        } catch (error) {
+          core.setFailed(error.message);
+          throw error;
+        }
+      }
+    }
+    await saveSarif(ctServer, sid, authToken, orgname, repoName, branch);
+    core.info('[CodeThreat]: SARIF report generation and saving completed.');
+  } catch (error) {
+    core.setFailed(error.message);
+    throw error;
   }
-  saveSarif(ctServer, sid, authToken, orgname, repoName, branch)
-  .then(() => console.log('[CodeThreat]: SARIF report generation and saving completed.'))
-  .catch(error => console.error(error));
 };
 
-(async () => {
-  let start;
-  try {
-    await loginIn();
-    checked = await checkProject();
-    if (checked.type === null) await createProject();
-    start = await startScan();
-    if (start && start.data && start.data.scan_id) {
-      await scanStatus(start.data.scan_id);
+// Export functions for testing
+module.exports = {
+  loginIn,
+  checkProject,
+  createProject,
+  startScan,
+  scanStatus,
+  resultScan
+};
+
+// Run if not being required (i.e., if being run directly)
+if (require.main === module) {
+  (async () => {
+    try {
+      await loginIn();
+      const checked = await checkProject();
+      if (checked.type === null) await createProject();
+      const start = await startScan();
+    } catch (error) {
+      core.setFailed(error.message);
+      throw error;
     }
-  } catch (error) {
-    throw new Error(error);
-  }
-})();
+  })();
+}

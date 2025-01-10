@@ -1,111 +1,198 @@
-# Identify issues in your code with CodeThreat
+# CodeThreat GitHub Action
 
-<!-- PROJECT LOGO -->
-<br />
 <p align="center">
   <a href="https://codethreat.com">
     <img src="https://www.codethreat.com/_next/static/media/ct-logo.0cc6530f.svg" alt="Logo" width="259" height="39">
   </a>
-
-  <h3 align="center">CodeThreat Github Action</h3>
-
 </p>
 
-[CodeThreat](https://codethreat.com) SAST solution has seamless integration with the [GitHub Actions](https://github.com/features/actions). While it's fairly easy to start security scans and working on the issues found on your code, this document provides details of the integration. 
+[CodeThreat](https://codethreat.com) SAST solution has seamless integration with [GitHub Actions](https://github.com/features/actions). This action performs Static Application Security Testing (SAST) and generates detailed security reports.
 
-With CodeThreat custom rule engine, we have wide language and framework support without sacrificing quality.
+## Features
+
+- 🔒 Automated SAST scanning
+- 📊 SARIF report generation
+- 🔍 Detailed vulnerability findings
+- 🚦 Customizable failure conditions
+- 🔄 CI/CD integration
+- 📝 GitHub Checks integration
 
 ## Requirements
 
 * A [CodeThreat](https://codethreat.com) account. Contact info@codethreat.com if you don't have one yet.
-* Aaand that's all! Now you are ready to jump!
-  
-## Github Security Feed Example
+* GitHub repository with source code
+* GitHub Actions enabled
+
+## GitHub Security Feed Example
 
 <img src="./images/github_action.png">
 
-## Usage
+## Quick Start
 
-Create a YAML file, such as the one below, `.github/workflows/ct.yml` under your source code project root directory. You can tailor the action triggers and `FAILED_ARGS` according to your needs.
+1. Add your CodeThreat credentials to GitHub Secrets:
+   - `ACCESS_TOKEN` – Your CodeThreat Account's token
+   - `CT_SERVER` – CodeThreat API server URL
+   - `ORGNAME` – Your CodeThreat Account's organization name
+   - `USERNAME` (optional) – Your CodeThreat Account's username (if not using ACCESS_TOKEN)
+   - `PASSWORD` (optional) – Your CodeThreat Account's password (if not using ACCESS_TOKEN)
+   - `GITHUB_TOKEN` – Automatically provided by GitHub Actions
+
+2. Create a workflow file (e.g., `.github/workflows/codethreat.yml`):
 
 ```yaml
+name: CodeThreat Security Scan
+
 on:
-  # Trigger scan when pushing in master or pull requests, and when creating
-  # a pull request.
+  push:
+    branches: [ main ]
   pull_request:
-      branches:
-        - main
-  push: 
-        branches:
-        - main
+    branches: [ main ]
+
+permissions: write-all  # Required for GitHub token permissions
+
 jobs:
-  codethreat_scanner:
+  security_scan:
     runs-on: ubuntu-latest
-    name: Codethreat Github Actions
+    name: Security Scan
     steps:
-      - name: Check Out Source Code
-        uses: actions/checkout@v3
-      - name: Install Node.js
-        uses: actions/setup-node@v1
-      - name: CodeThreat Scanner
-        uses: CodeThreat/codethreat-scan-action@master
+      - uses: actions/checkout@v3
+      
+      - name: CodeThreat Scan
+        uses: CodeThreat/codethreat-scan-action@v1
         env:
-           ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
-           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-           CT_SERVER: ${{ secrets.CT_SERVER }}
-           USERNAME: ${{ secrets.USERNAME }}
-           PASSWORD: ${{ secrets.PASSWORD }}
-           ORGNAME: ${{ secrets.ORGNAME }}
-        with: 
-            FAILED_ARGS: |
-                 - max_number_of_critical: 23
-                 - max_number_of_high: 23
-                 - sca_max_number_of_critical: 23
-                 - sca_max_number_of_high: 23
-                 - weakness_is: ".*injection,buffer.over.read,mass.assigment"
-                 - condition: 'OR'
-                 - automerge: true
-                 - sync_scan: true
-                 - policy_name: Advanced Security
+          ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+          CT_SERVER: ${{ secrets.CT_SERVER }}
+          ORGNAME: ${{ secrets.ORGNAME }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          FAILED_ARGS: |
+            - max_number_of_critical: 23
+            - max_number_of_high: 23
+            - sca_max_number_of_critical: 23
+            - sca_max_number_of_high: 23
+            - weakness_is: ".*injection,buffer.over.read,mass.assigment"
+            - condition: 'OR'
+            - automerge: false
+            - sync_scan: true
+            - policy_name: Advanced Security
+
       - name: Upload SARIF file
         uses: github/codeql-action/upload-sarif@v2
         with:
           sarif_file: codethreat.sarif.json
 ```
 
-* As the name implies `FAILED_ARGS` contains the conditions for which you want to break the pipeline (action).
+## Configuration
 
-* In `env` section, you can use either the ACCESS_TOKEN or USERNAME,PASSWORD pair as one of the authentication method.
+### Environment Variables
 
-* Mininum one  `FAILED_ARGS` fields is required. If more args are provided, they will be `AND`ed together.
+| Variable | Description | Required | Notes |
+|----------|-------------|----------|--------|
+| `ACCESS_TOKEN` | CodeThreat API token | Yes* | Either ACCESS_TOKEN or USERNAME/PASSWORD required |
+| `CT_SERVER` | CodeThreat API server URL | Yes | |
+| `ORGNAME` | Organization name | Yes | |
+| `USERNAME` | CodeThreat username | No* | Required if not using ACCESS_TOKEN |
+| `PASSWORD` | CodeThreat password | No* | Required if not using ACCESS_TOKEN |
+| `GITHUB_TOKEN` | GitHub token | Auto | Automatically provided by Actions |
 
-* `weakness_is` fields expects either a wildcard or a direct weakness id. Please checkout KStore section of  [CodeThreat](https://codethreat.com) portal application.
+### FAILED_ARGS Configuration
 
-## Args
+The `FAILED_ARGS` input allows you to configure when the action should fail based on scan results:
 
-| Variable  | Example Value &nbsp;| Description &nbsp; | Type | Required | Default |
-| ------------- | ------------- | ------------- |------------- | ------------- | ------------- |
-| max_number_of_critical | 23 | Failed condition for maximum critical number of found issues | Number | No | N/A
-| max_number_of_high | 23 | Failed condition for maximum high number of found issues | Number | No | N/A
-| sca_max_number_of_critical | 23 | Failed condition for maximum high number of found sca issues | Number | No | N/A
-| sca_max_number_of_high | 23 | Failed condition for maximum high number of found sca issues | Number | No | N/A
-| weakness_is | ".*injection,buffer.over.read,mass.assigment" | Failed condition for found issues weakness id's. | String | No | N/A
-| automerge | true | If automerge is active and scan returns success, it allows PR to merge automatically . | Boolean | No | false
-| condition | "OR" | It checks failed arguments(max_number_of_critical, max_number_of_high)  using with "and" or "or". | String | No | AND
-| sync_scan | true | If you don't want to wait for the pipeline to finish scanning, set it to false | Boolean | No | true
-| policy_name | "Advanced Security" | For example, Advanced Security, SAST Scan, SCA Scan, etc. By default Advanced Security | String | No | Advanced Security
+| Parameter | Type | Description | Default | Required |
+|-----------|------|-------------|---------|----------|
+| `max_number_of_critical` | Number | Max critical findings allowed | N/A | No |
+| `max_number_of_high` | Number | Max high findings allowed | N/A | No |
+| `sca_max_number_of_critical` | Number | Max critical SCA findings allowed | N/A | No |
+| `sca_max_number_of_high` | Number | Max high SCA findings allowed | N/A | No |
+| `weakness_is` | String | Regex for weakness types | N/A | No |
+| `condition` | String | How to combine conditions ('AND'/'OR') | 'AND' | No |
+| `automerge` | Boolean | Auto-merge PR if scan passes | false | No |
+| `sync_scan` | Boolean | Wait for scan completion | true | No |
+| `policy_name` | String | Security policy to apply | 'Advanced Security' | No |
 
+### GitHub Token Permissions
 
-### Secrets
+The `GITHUB_TOKEN` requires specific permissions to function properly. You can set these in two ways:
 
-- `ACCESS_TOKEN` – Your CodeThreat Account's token. It refers to the API Token that you need to generate in the application for CodeThreat.
+1. Repository Settings:
+   - Go to Settings > Actions > General
+   - Under "Workflow permissions", select "Read and write permissions"
 
-- `USERNAME` –  Your CodeThreat Account's username.
+2. Workflow File:
+   - Add `permissions: write-all` to your workflow file
+   - Or specify individual permissions as needed
 
-- `PASSWORD` – Your CodeThreat Account's password.
+## Usage Examples
 
-- `ORGNAME` – Your CodeThreat Account's orgname.
+### Basic Scan
 
-- *`GITHUB_TOKEN` – It represents the Github token belonging to your account. There is no need to add it manually. Github adds this automatically. However, if you want to import a token with different authorizations, you can enter the secret section of your repo with the same name.
+```yaml
+- name: CodeThreat Scan
+  uses: CodeThreat/codethreat-scan-action@v1
+  env:
+    ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+    CT_SERVER: ${{ secrets.CT_SERVER }}
+    ORGNAME: ${{ secrets.ORGNAME }}
+```
 
-- There may be some permission restrictions for GITHUB_TOKEN. To remove them, first make sure that the "Read and Write Permission" option is selected in the settings section of your repository. If you are using CodeThreat Action in an organization, you can do this in the settings section of your organization. Another method is to add the permission line to the .yaml file, for example: You can solve this situation with ``permissions: write-all``.
+### Custom Failure Conditions
+
+```yaml
+- name: CodeThreat Scan
+  uses: CodeThreat/codethreat-scan-action@v1
+  env:
+    ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+    CT_SERVER: ${{ secrets.CT_SERVER }}
+    ORGNAME: ${{ secrets.ORGNAME }}
+  with:
+    FAILED_ARGS: |
+      - condition: 'AND'
+      - max_number_of_critical: 0
+      - max_number_of_high: 5
+      - weakness_is: '.*sql.*injection'
+      - sync_scan: true
+```
+
+### Pull Request Integration
+
+```yaml
+- name: CodeThreat Scan
+  uses: CodeThreat/codethreat-scan-action@v1
+  env:
+    ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+    CT_SERVER: ${{ secrets.CT_SERVER }}
+    ORGNAME: ${{ secrets.ORGNAME }}
+  with:
+    FAILED_ARGS: |
+      - automerge: true
+      - max_number_of_critical: 0
+```
+
+## Development
+
+### Setup
+
+1. Clone the repository
+2. Install dependencies: `npm install`
+
+### Testing
+
+```bash
+# Run tests
+npm test
+```
+
+## Contributing
+
+Please read our [Contributing Guidelines](CONTRIBUTING.md) for details on our code of conduct and the process for submitting pull requests.
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Support
+
+- Open an issue for bugs
+- Visit [CodeThreat Documentation](https://docs.codethreat.com)
+- Contact support@codethreat.com
