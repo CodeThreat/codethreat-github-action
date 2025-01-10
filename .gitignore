@@ -26,8 +26,5 @@ build/
 Thumbs.db
 target/
 
-# Test files
-tests/
-
 # Coverage
 coverage/
