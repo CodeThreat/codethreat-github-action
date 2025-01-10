@@ -17,13 +17,13 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
+# Build output
+build/
+
 # OS files
 .DS_Store
 Thumbs.db
 target/
-
-# Test files
-tests/
 
 # Coverage
 coverage/
