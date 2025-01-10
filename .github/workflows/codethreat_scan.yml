@@ -1,3 +1,4 @@
+name: CodeThreat Scan
 run-name: CodeThreat Scan Task
 
 on:

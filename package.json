@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node index.js",
     "test": "jest",
-    "test:coverage": "jest --coverage"
+    "test:coverage": "jest --coverage",
+    "build": "ncc build index.js -o dist"
   },
   "repository": {
     "type": "git",
@@ -29,6 +30,7 @@
     "js-yaml": "^4.1.0"
   },
   "devDependencies": {
+    "@vercel/ncc": "^0.38.3",
     "jest": "^29.5.0"
   }
-}
+} 

@@ -9,18 +9,8 @@ inputs:
     description: 'FAILED_ARGS'
     required: false
     default: ''
-jobs:
-  codethreat-scanner:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v2
-    - name: Install Node.js
-      uses: actions/setup-node@v1
-      with:
-        node-version: 12
-    - name: Install dependencies
-      run: npm install
+
 runs:
-  using: 'node16'
-  main: 'index.js'
+  using: 'node20'
+  main: 'dist/index.js'
   
