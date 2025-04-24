@@ -58,7 +58,7 @@ jobs:
       - uses: actions/checkout@v3
       
       - name: CodeThreat Scan
-        uses: CodeThreat/codethreat-scan-action@v1
+        uses: CodeThreat/codethreat-scan-action@master
         env:
           ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
           CT_SERVER: ${{ secrets.CT_SERVER }}
@@ -77,7 +77,7 @@ jobs:
             - policy_name: Advanced Security
 
       - name: Upload SARIF file
-        uses: github/codeql-action/upload-sarif@v2
+        uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: codethreat.sarif.json
 ```
